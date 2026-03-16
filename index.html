@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumen AI Chat</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f7; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #chat-container { width: 450px; height: 80vh; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        #header { background: #4A90E2; color: white; padding: 20px; text-align: center; font-size: 1.2em; font-weight: bold; }
+        #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { max-width: 80%; padding: 10px 15px; border-radius: 18px; line-height: 1.4; font-size: 0.95em; }
+        .user-bubble { align-self: flex-end; background: #4A90E2; color: white; border-bottom-right-radius: 2px; }
+        .ai-bubble { align-self: flex-start; background: #f1f1f1; color: #333; border-bottom-left-radius: 2px; }
+        .input-area { display: flex; padding: 15px; border-top: 1px solid #eee; background: #fafafa; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 25px; outline: none; padding-left: 20px; }
+        button { margin-left: 10px; background: #4A90E2; color: white; border: none; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #357ABD; }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="header">Lumen AI Assistant</div>
+        <div id="messages"></div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Type your message..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()">➔</button>
+        </div>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const msgDiv = document.getElementById('messages');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Add User message
+            msgDiv.innerHTML += `<div class="bubble user-bubble">${text}</div>`;
+            input.value = '';
+            msgDiv.scrollTop = msgDiv.scrollHeight;
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await response.json();
+                
+                // Add AI message
+                const aiMsg = data.response || data.error || "Sorry, I encountered an error.";
+                msgDiv.innerHTML += `<div class="bubble ai-bubble">${aiMsg}</div>`;
+            } catch (err) {
+                msgDiv.innerHTML += `<div class="bubble ai-bubble" style="color:red">Failed to connect to server.</div>`;
+            }
+            msgDiv.scrollTop = msgDiv.scrollHeight;
+        }
+    </script>
+</body>
+</html>
